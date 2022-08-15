@@ -14,6 +14,7 @@ def greet():
 
 
 # Route for entering the details of various screens one at a time
+# request URL eg: 'http://127.0.0.1:5000//screens
 '''
 {
     "name": "inox",
@@ -47,7 +48,7 @@ def screens():
 
         for key, value in seat_info.items():
             num_seats = value['numberOfSeats']
-            row_id = str(screen.id) + '_' + key # Eg: 1_A ;  id is a unique id made of "screen_id + row_alphabet"
+            row_id = str(screen.id) + '_' + key # Eg: 1_A ;  row_id is a unique id made of "screen_id + '_' + row_alphabet"
             row = Row(id=row_id,
                       number_of_seats=num_seats,
                       reserved_seats="")
@@ -61,7 +62,7 @@ def screens():
 
     
 # Route for reserving a ticket at a given screen
-# Example of a request URL : 'http://localhost:8080/screens/inox/reserve
+# request URL eg: 'http://127.0.0.1:5000//screens/inox/reserve
 '''
 {
     "seats" : {
@@ -92,10 +93,10 @@ def reserve_seats(screen_name):
     # Mark the reserved seats in the database
     for key, value in seats.items():
         row_id = str(screen.id) + '_' + key
-        row = Row.query.filter_by(id=row_id).first() #1_A
+        row = Row.query.filter_by(id=row_id).first() # 1_A
         reserved_seats = row.reserved_seats.split('_') # list of reserved seat numbers(type:string)
         reserved_seats += value # as the requested seats are available, add then as well to reserved
-        reserved_seats = "_".join(str(x) for x in reserved_seats) #list to string with _ between each element
+        reserved_seats = "_".join(str(x) for x in reserved_seats) # list to string with '_' between each element
         row.reserved_seats = reserved_seats # updated string of reserved seats
         db.session.commit()
 
@@ -103,7 +104,7 @@ def reserve_seats(screen_name):
 
     
 # Route to get available seats(all unreserved seats) for a given screen.
-# Eg. 'http://localhost:8080/screens/inox/seats?status=unreserved'
+# request URL eg: 'http://127.0.0.1:5000//screens/inox/seats?status=unreserved
 @app.route('/screens/<screen_name>/seats', methods=['GET'])
 def available_seats(screen_name):
     status = None
@@ -118,11 +119,11 @@ def available_seats(screen_name):
     screen = Screen.query.filter_by(name=screen_name).first()
     id = screen.id
     # Get all the rows at the screen given by 'screen_name'
-    rows = Row.query.filter(Row.id.like("%"+str(id)+"%")).all()
+    rows = Row.query.filter(Row.id.like("%"+str(id)+"%")).all() # All rows of inox : "1_A", "1_B", "1_C"
     result = dict()
     seats = dict()
     for row in rows:
-        reserved = row.reserved_seats.split('_') #list of reserved seat nos(in string format) for each row
+        reserved = row.reserved_seats.split('_') # list of reserved seat nos(in string format) for each row
         num = row.number_of_seats # total seats for each row
         lst = list(range(0, num))
         for item in reserved:
@@ -130,7 +131,7 @@ def available_seats(screen_name):
                 lst.remove(int(item))
             except:
                 None
-        seats[row.id[-1]] = lst
+        seats[row.id[-1]] = lst # If our id was "1_A", then row.id[-1] will give us 'A'. Proceeds lly for all rows
     result["seats"] = seats
     
     # Return a list of all unreserved seats
