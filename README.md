@@ -1,16 +1,16 @@
 # Movie Ticket Booking API
 
 The developed API has the following functionalities:
-- Add details of a screen (total number of seats, aisle seats).
-- Get the number of seats available for a particular screen.
+- Add details of a screen (rows and number of seats in each row).
+- Get the seats available in each row for a particular screen.
 - Reserve one or multiple available seats
 
 **Assumptions**
-1. By screen, we mean a single cinema hall  
+1. By screen, we mean a single cinema hall.  
 eg: INOX_Delhi is a screen while INOX_Kanpur is another screen. 
 2. For the sake of simplicity, we assume that only one show is scheduled on a single day.
-3. Our cinema hall has rows with continuous seats, no break in a row of seats. Hence no aisle seats.  
-This is what our movie theatre looks like  
+3. Our cinema hall has rows with continuous seats, no break in between. Hence no aisle seats, except for the ones at each end.  
+This is what our movie theatre looks like:  
 ![movie_theatre](https://user-images.githubusercontent.com/15028913/184633930-5781d05d-ca06-4e15-ae27-c6f762aa61e8.jpg)
 
 ## Creating our Development Environment
@@ -21,25 +21,30 @@ movie-ticket-booking-api
 ├── api  
 ├── requirements.txt  
 ├── README.md  
-├── .venv(virtual env), haven't uploaded this to GitHub
+├── .venv
 ├── run.py  
 ```
 
-- **movie-ticket-booking-api** is our root directory and contains all the project related codes, configurations and environments. It contains two sub-directories **api** and **.venv**.
-- **api** directory contains all the source code related to our API
-- **.venv**  is the virtual environment for the project
-- The **run.py** file is the main file which is executed first whenever the application is started
-- **README.md** is what you're reading
-- **requirements.txt** contains all the dependencies of the project
+- **movie-ticket-booking-api** is our root directory and contains all the project related code, configuration and environment. It contains two sub-directories **api** and **.venv**.
+- **api** directory contains all the source code related to our API.
+- **.venv**  is the virtual environment for the project.
+- The **run.py** file is the main file which is executed first whenever the application is started.
+- **README.md** is what you're reading.
+- **requirements.txt** contains all the dependencies of the project.
 
-It's a good practice to create a virtual environment for our project rather than using the global environment. To learn how to create a virtual environment in python [click here]().
+It's a good practice to create a virtual environment for our project rather than using the global environment.
+
+### Create the virtual environment
+```
+$ python3 -m venv .venv
+```
 
 ### Activate the virtual environment
 ```
 $ source .venv/bin/activate
 ```
 
-### Install Flask using pip3
+### Install flask using pip3
 ```
 $ pip3 install flask
 ```
@@ -56,12 +61,12 @@ The contents of the **run.py** file are as follows:
 from api import app
 ```
 
-We nee to initialize our app and databases. To do this change into 'api' directory and create three files:
-- __init__.py  - Initialises our app and databases
+We nee to initialize our app and databases. To do this change into **api** directory and create three files:
+- \__init\__.py  - Initialises our app and databases
 - models.py - contains the classes/models for our database
 - routes.py - contains the endpoints of our API.
 
-The contents of the **__init__.py** file are as follows:
+The contents of the **\__init\__.py** file are as follows:
 ```python
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
@@ -100,16 +105,16 @@ class Row(db.Model):
 
 Our API will have three endpoints:
 1. **/screens**  - Add new screen and screen details. This endpoint will use the HTTP **POST** method to add a new screen using data in JSON format in the request body.
-2. **/screens/<screen_name>/seats** - Get information about number of unreserved seats. This endpoint uses the HTTP **GET** method.
+2. **/screens/<screen_name>/seats** - Get information about unreserved seats in each row. This endpoint uses the HTTP **GET** method.
 3. **/screens/<screen_name>/reserve** - Reserve seats at a given screen identified by screen_name. The details of the seats to be reserved are provided in the request body in JSON format. This endpoint also uses the HTTP **POST** method.
 
 **GET** and **POST** are HTTP methods. HTTP defines a set of request methods to indicate the desired action to be performed for a given resource.
-- GET : The GET method requests a representation of the specified resource. Requests using GET should ***only retrieve data***.
-- POST : The POST method is used to ***submit an entity to the specified resource***, often causing a change in state on the server (eg: change in the database, etc.)
+- **GET** : The GET method requests a representation of the specified resource. Requests using GET should ***only retrieve data***.
+- **POST** : The POST method is used to ***submit an entity to the specified resource***, often causing a change in state on the server (eg: change in the database, etc.)
 
 ## Adding a new screen : /screens 
 
-The purpose of this endpoint is to add a new screen and its details. Since we would be hosting our API on localhost, the URL for this endpoint: http://127.0.0.1:5000//screens  
+The purpose of this endpoint is to add a new screen and its details. Since we would be hosting our API on localhost, the URL for this endpoint would be: http://127.0.0.1:5000//screens  
 
 The name of the screen and the data about the number of seats will be sent in JSON format in the request body.  
 An example would look like:
@@ -180,7 +185,7 @@ After sending the request we receive a success message(bottom pane) indicating t
 ## Reserving seats at a screen: /screens/<screen_name>/reserve
 
 This end-point uses POST method as the reserved seats have to be marked in the database thus changing the state of the server. The request body contains the information of the seats to be reserved in JSON format.  
-The URL for this endpoint: http://127.0.0.1:5000//screens/<screen_name>/reserve
+Here is the URL for this endpoint: http://127.0.0.1:5000//screens/<screen_name>/reserve
 
 An example of the request body sent in JSON format to reserve seats would look like:
 ```json
@@ -233,7 +238,7 @@ Testing it on Postman
 
 This end-point uses GET method to retrieve data about all the unreserved seats at a screen. The parameter used is 'status' with possible value as 'unreserved'.
 
-The URL for this endpoint: http://127.0.0.1:5000//screens/inox/seats?status=unreserved  
+The URL for this endpoint would look like: http://127.0.0.1:5000//screens/inox/seats?status=unreserved  
 Here, '?' denotes the start of URL parameters, after which numerous parameters can exist in the form of key-value pairs separated by '&'. Our endpoint uses just one parameter.
 
 To handle this request add the following code to **views.py** file.
