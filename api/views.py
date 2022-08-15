@@ -102,4 +102,36 @@ def reserve_seats(screen_name):
     return jsonify({"status": 200, "message": "Seats successfully reserved"})
 
     
+# Route to get available seats(all unreserved seats) for a given screen.
+# Eg. 'http://localhost:8080/screens/inox/seats?status=unreserved'
+@app.route('/screens/<screen_name>/seats', methods=['GET'])
+def available_seats(screen_name):
+    status = None
+    try:
+        status = request.args.get('status')
+    except:
+        pass
+    if status != "unreserved":
+        return jsonify({"message": "Bad request", "status": 400})
+
+    # Get the screen object from database with name=screen_name
+    screen = Screen.query.filter_by(name=screen_name).first()
+    id = screen.id
+    # Get all the rows at the screen given by 'screen_name'
+    rows = Row.query.filter(Row.id.like("%"+str(id)+"%")).all()
+    result = dict()
+    seats = dict()
+    for row in rows:
+        reserved = row.reserved_seats.split('_') #list of reserved seat nos(in string format) for each row
+        num = row.number_of_seats # total seats for each row
+        lst = list(range(0, num))
+        for item in reserved:
+            try:
+                lst.remove(int(item))
+            except:
+                None
+        seats[row.id[-1]] = lst
+    result["seats"] = seats
     
+    # Return a list of all unreserved seats
+    return jsonify(result)
