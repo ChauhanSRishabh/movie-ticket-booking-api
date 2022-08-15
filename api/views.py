@@ -58,3 +58,48 @@ def screens():
     except :
         return jsonify({"status": 400,
                         "message": "Failure to add screen details.This may occur due to duplicate entry of screen name"})
+
+    
+# Route for reserving a ticket at a given screen
+# Example of a request URL : 'http://localhost:8080/screens/inox/reserve
+'''
+{
+    "seats" : {
+        "A" : [1,2],
+        "B" : [10,11],
+        "C" : [6,7]
+    }
+}
+'''
+@app.route('/screens/<screen_name>/reserve', methods=['POST'])
+def reserve_seats(screen_name):
+    if not screen_name:
+        return jsonify({"message": "Bad request", "status": 400})
+    screen = Screen.query.filter_by(name=screen_name).first()
+    seats = request.json['seats']
+    
+    # Check whether the required seats are available or not
+    for key, value in seats.items():
+        req_seats = value
+        row_id = str(screen.id) + '_' + key
+        row = Row.query.filter_by(id=row_id).first()
+        reserved_seats = row.reserved_seats.split('_')
+        for seat_no in req_seats:
+            if str(seat_no) in reserved_seats:
+                return jsonify({"status": 400,
+                                "message": "Cannot reserve specified seats!"})
+
+    # Mark the reserved seats in the database
+    for key, value in seats.items():
+        row_id = str(screen.id) + '_' + key
+        row = Row.query.filter_by(id=row_id).first() #1_A
+        reserved_seats = row.reserved_seats.split('_') # list of reserved seat numbers(type:string)
+        reserved_seats += value # as the requested seats are available, add then as well to reserved
+        reserved_seats = "_".join(str(x) for x in reserved_seats) #list to string with _ between each element
+        row.reserved_seats = reserved_seats # updated string of reserved seats
+        db.session.commit()
+
+    return jsonify({"status": 200, "message": "Seats successfully reserved"})
+
+    
+    
